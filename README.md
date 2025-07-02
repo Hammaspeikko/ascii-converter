@@ -15,3 +15,4 @@
 https://github.com/silvia-odwyer/photon
 https://lib.rs/crates/imgref
 https://stackoverflow.com/questions/27136950/getting-the-brightness-of-a-grayscale-pixel
+https://docs.rs/image/latest/image/
