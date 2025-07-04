@@ -1,4 +1,5 @@
-use image::{DynamicImage, GenericImageView, GrayImage, ImageReader};
+use std::error::Error;
+use image::{DynamicImage, GenericImageView, GrayImage, ImageBuffer, ImageReader, Rgba};
 use rust_lapper::{Interval, Lapper};
 use std::fs::File;
 use std::io;
@@ -6,13 +7,22 @@ use std::io::{BufWriter, Write};
 use image::imageops::FilterType;
 use terminal_size::{Width, Height, terminal_size};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
+    let path_to_file = get_user_input("Enter image path to file:");
 
-    let filename = get_user_input("Enter image path to file:");
+    let lapper = create_ascii_lapper();
 
-    let ascii_lume_interval = create_ascii_interval();
-    let lapper = Lapper::new(ascii_lume_interval);
+    let resized_img = resize_image(path_to_file)?;
+    let luma: GrayImage = DynamicImage::ImageRgba8(resized_img).into_luma8();
 
+    create_ascii_image(lapper, luma);
+
+    get_user_input("Press Enter to exit...");
+
+    Ok(())
+}
+
+fn resize_image(filename: String) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, Box<dyn Error>> {
     let img = ImageReader::open(filename)?.decode()?;
 
     let target_width = get_terminal_width();
@@ -27,13 +37,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let final_height = (target_height as f32 / aspect_ratio) as u32;
 
     let resized_img = image::imageops::resize(&small_img, target_width, final_height, FilterType::Lanczos3);
+    Ok(resized_img)
+}
 
-    let luma: GrayImage = DynamicImage::ImageRgba8(resized_img).into_luma8();
-
+fn create_ascii_image(lapper: Lapper<u32, char>, luma: GrayImage) {
     let path = "output-image.txt";
     let f = File::create(path).expect("unable to create file");
     let mut buffer_file = BufWriter::new(f);
-    
+
     let mut prev_y: u32 = 0;
     for (_x, y, pixel) in luma.enumerate_pixels() {
         let luminance: u8 = pixel[0];
@@ -50,12 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             print!("{}", found_interval.val);
         }
     }
-    
     println!();
-
-    get_user_input("Press Enter to exit...");
-
-    Ok(())
 }
 
 fn get_user_input(prompt: &str) -> String {
@@ -75,7 +81,7 @@ fn get_terminal_width() -> u32 {
     }
 }
 
-fn create_ascii_interval() -> Vec<Interval<u32, char>> {
+fn create_ascii_lapper() -> Lapper<u32, char> {
     let intervals: Vec<Interval<u32, char>> = vec![
         Interval { start: 0, stop: 8, val: '@' },
         Interval { start: 8, stop: 16, val: '#' },
@@ -112,5 +118,7 @@ fn create_ascii_interval() -> Vec<Interval<u32, char>> {
         Interval { start: 249, stop: 256, val: ' ' },
     ];
 
-    intervals
+    let lapper = Lapper::new(intervals);
+    lapper
+
 }
