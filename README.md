@@ -2,8 +2,6 @@
 
  Idea of this project is to make a program that converts image to ASCII and learn a bit more rust at the same time.
 
- AI was partly used to generate some parts of the code but all the changes were reviewed or modified by me. Mostly used to help me with some ideas and finding some dependencies
-
 
 ## Example of a image generated
                                                                                                                         
