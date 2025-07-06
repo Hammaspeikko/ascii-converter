@@ -9,15 +9,18 @@ use terminal_size::{Width, Height, terminal_size};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let path_to_file = get_user_input("Enter image path to file:");
+    let trimmed_start = path_to_file.trim_start_matches('"');
+    let trimmed_full = trimmed_start.trim_end_matches('"');
+
 
     let lapper = create_ascii_lapper();
 
-    let resized_img = resize_image(path_to_file)?;
+    let resized_img = resize_image(trimmed_full.to_string())?;
     let luma: GrayImage = DynamicImage::ImageRgba8(resized_img).into_luma8();
 
     create_ascii_image(lapper, luma);
 
-    get_user_input("Press Enter to exit...");
+    get_user_input("Image created as output-image.txt - Press Enter to exit...");
 
     Ok(())
 }
